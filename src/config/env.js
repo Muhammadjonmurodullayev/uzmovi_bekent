@@ -1,32 +1,31 @@
 const dotenv = require("dotenv");
 dotenv.config();
 
-function must(name, fallback) {
-  const v = process.env[name] ?? fallback;
-  if (v === undefined || v === null || v === "") {
-    throw new Error(`ENV is missing: ${name}`);
-  }
-  return v;
+function num(v, def) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : def;
 }
 
-const env = {
+module.exports = {
   NODE_ENV: process.env.NODE_ENV || "development",
-  PORT: Number(process.env.PORT || 4000),
+  PORT: num(process.env.PORT, 4000),
 
-  CORS_ORIGIN: (process.env.CORS_ORIGIN || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean),
+  // CORS: "*" yoki "http://localhost:5173,https://site.netlify.app"
+  CORS_ORIGIN: process.env.CORS_ORIGIN || "*",
 
-  DB_HOST: must("DB_HOST"),
-  DB_PORT: Number(process.env.DB_PORT || 3306),
-  DB_USER: must("DB_USER"),
-  DB_PASS: must("DB_PASS"),
-  DB_NAME: must("DB_NAME"),
-  DB_CONN_LIMIT: Number(process.env.DB_CONN_LIMIT || 10),
+  // DB (ixtiyoriy)
+  DB_HOST: process.env.DB_HOST || "",
+  DB_PORT: num(process.env.DB_PORT, 3306),
+  DB_USER: process.env.DB_USER || "",
+  DB_PASS: process.env.DB_PASS || "",
+  DB_NAME: process.env.DB_NAME || "",
+  UPLOAD_DIR: process.env.UPLOAD_DIR || "uploads",
 
-  UPLOAD_DIR: must("UPLOAD_DIR", "uploads"),
-  MAX_FILE_MB: Number(process.env.MAX_FILE_MB || 1500)
+
+  // Upload limit
+  MAX_FILE_MB: num(process.env.MAX_FILE_MB, 6000),
+
+  // DBni vaqtincha o‘chirish uchun:
+  // DB_ENABLED=false
+  DB_ENABLED: (process.env.DB_ENABLED || "true").toLowerCase() !== "false",
 };
-
-module.exports = env;

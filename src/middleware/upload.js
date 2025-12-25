@@ -7,7 +7,15 @@ function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
-const base = path.join(process.cwd(), env.UPLOAD_DIR);
+// ✅ UPLOAD_DIR bo‘lmasa: "uploads" (oldingi struktura saqlanadi)
+const uploadDirName =
+  typeof env.UPLOAD_DIR === "string" && env.UPLOAD_DIR.trim()
+    ? env.UPLOAD_DIR.trim()
+    : "uploads";
+
+// ✅ absolyut base dir
+const base = path.resolve(process.cwd(), uploadDirName);
+
 const postersDir = path.join(base, "posters");
 const backdropsDir = path.join(base, "backdrops");
 const videosDir = path.join(base, "videos");
@@ -27,7 +35,7 @@ const storage = multer.diskStorage({
     const ext = path.extname(file.originalname || "");
     const safe = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
     cb(null, safe);
-  }
+  },
 });
 
 function fileFilter(req, file, cb) {
@@ -54,15 +62,16 @@ function fileFilter(req, file, cb) {
   return cb(null, true);
 }
 
-// ✅ LIMIT env’dan
-const maxBytes = Number(env.MAX_FILE_MB) * 1024 * 1024;
+// ✅ LIMIT env’dan (xato bo‘lsa default)
+const mb = Number(env.MAX_FILE_MB);
+const maxBytes = (Number.isFinite(mb) && mb > 0 ? mb : 6000) * 1024 * 1024;
 
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: maxBytes
-  }
+    fileSize: maxBytes,
+  },
 });
 
 module.exports = { upload };
